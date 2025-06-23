@@ -33,8 +33,8 @@ export const problems: Problem[] = [
 		videoId: "",
 	},
 	{
-		id: "valid-parentheses",
-		title: "Valid Parentheses",
+		id: "valid-parantheses",
+		title: "Valid Parantheses",
 		difficulty: "Easy",
 		category: "Stack",
 		order: 4,

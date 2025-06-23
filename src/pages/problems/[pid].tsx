@@ -1,8 +1,8 @@
 import Topbar from "@/components/Topbar/Topbar";
 import Workspace from "@/components/Workspace/Workspace";
-// import { problems } from '@/utils/problems';
 import React from "react";
-import { problems } from "@/mockProblems/problems";
+import { problems } from "@/utils/problems";
+
 import { Problem } from "@/utils/types/problem";
 
 type ProblemPageProps = {
@@ -10,11 +10,10 @@ type ProblemPageProps = {
 };
 
 const ProblemPage: React.FC<ProblemPageProps> = ({ problem }) => {
-  console.log(problem);
   return (
     <div>
       <Topbar problemPage />
-      <Workspace />
+      <Workspace problem={problem}/>
     </div>
   );
 };
@@ -23,11 +22,9 @@ export default ProblemPage;
 //Static side generation
 
 export async function getStaticPaths() {
-  const paths = Object.keys(problems).map((key) => {
-    params: {
-      pid: key;
-    }
-  });
+  const paths = Object.keys(problems).map((key) => ({
+    params: {pid: key},
+  }));
 
   return {
     paths,

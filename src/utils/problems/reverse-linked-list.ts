@@ -1,6 +1,6 @@
 import assert from "assert";
 import { Problem } from "../types/problem";
-import example from "./images/reverseLL.jpg";
+import example from "../images/reverseLL.jpg";
 
 // JS doesn't have a built in LinkedList class, so we'll create one
 class LinkedList {
@@ -36,7 +36,7 @@ export const reverseLinkedListHandler = (fn: any) => {
 		}
 		return true;
 	} catch (error: any) {
-		console.log("Error from reverseLinkedListHandler: ", error);
+		// console.log("Error from reverseLinkedListHandler: ", error);
 		throw new Error(error);
 	}
 };

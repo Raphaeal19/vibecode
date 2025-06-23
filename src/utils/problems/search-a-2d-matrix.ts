@@ -1,7 +1,7 @@
 import assert from "assert";
 import { Problem } from "../types/problem";
-import example1 from "./images/search-a-2d-1.jpg";
-import example2 from "./images/search-a-2d-2.jpg";
+import example1 from "../images/search-a-2d-1.jpg";
+import example2 from "../images/search-a-2d-2.jpg";
 
 export const search2DMatrixHandler = (fn: any) => {
 	try {
@@ -30,7 +30,7 @@ export const search2DMatrixHandler = (fn: any) => {
 		}
 		return true;
 	} catch (error: any) {
-		console.log("Error from searchA2DMatrixHandler: ", error);
+		// console.log("Error from searchA2DMatrixHandler: ", error);
 		throw new Error(error);
 	}
 };
