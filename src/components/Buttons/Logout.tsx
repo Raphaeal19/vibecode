@@ -17,7 +17,7 @@ const Logout:React.FC<LogoutProps> = () => {
       if (success) {
         // console.log('Successfully signed out');
         toast.success('You have been signed out successfully.', {position: 'top-center', autoClose: 4000, hideProgressBar: true, closeOnClick: true, theme: 'dark'});
-        router.push('/auth'); // Redirect to home page after sign out
+        // router.push('/auth'); // Redirect to home page after sign out
       }
     }
     catch (error:any) {

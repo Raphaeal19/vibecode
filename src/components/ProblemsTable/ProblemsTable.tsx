@@ -5,9 +5,17 @@ import { AiFillYoutube } from "react-icons/ai";
 import { IoClose } from "react-icons/io5";
 import YouTube from "react-youtube";
 import { useState } from "react";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import { firebase } from "@/firebase/firebase";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+} from "firebase/firestore";
+import { auth, firebase } from "@/firebase/firebase";
 import { DBProblem } from "@/utils/types/problem";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 type ProblemsTableProps = {
   setLoadingProblems: React.Dispatch<React.SetStateAction<boolean>>;
@@ -20,6 +28,8 @@ const ProblemsTable: React.FC<ProblemsTableProps> = (setLoadingProblems) => {
   });
 
   const problems = useGetProblems(setLoadingProblems.setLoadingProblems);
+  const solvedProblems = useGetSolvedProblems();
+  console.log(solvedProblems)
 
   const closeModal = () => {
     setYoutubePlayer({ isOpen: false, videoId: "" });
@@ -51,7 +61,7 @@ const ProblemsTable: React.FC<ProblemsTableProps> = (setLoadingProblems) => {
               key={problem.id}
             >
               <th className="px-2 py-4 font-medium whitepace-nowrap text-dark-green-s">
-                <BsCheckCircle fontSize={"18"} width={"18"}></BsCheckCircle>
+                {solvedProblems.includes(problem.id) && <BsCheckCircle fontSize={"18"} width={"18"}></BsCheckCircle>}
               </th>
               <td className="px-6 py-4">
                 {problem.link ? (
@@ -154,4 +164,22 @@ function useGetProblems(
   }, [setLoadingProblems]);
 
   return problems;
+}
+
+function useGetSolvedProblems() {
+  const [solvedProblems, setSovledProblems] = useState<string[]>([]);
+  const [user] = useAuthState(auth);
+  useEffect(() => {
+    const getSolvedProblems = async () => {
+      const userRef = doc(firebase, "users", user!.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        setSovledProblems(userDoc.data().solvedProblems);
+      }
+    };
+    if (user) getSolvedProblems();
+    if (!user) setSovledProblems([]);
+  }, [user]);
+  return solvedProblems;
 }

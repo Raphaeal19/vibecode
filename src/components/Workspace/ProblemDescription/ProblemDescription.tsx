@@ -2,7 +2,14 @@ import CircleSkeleton from "@/components/Skeletons/CircleSkeleton";
 import RectangleSkeleton from "@/components/Skeletons/RectangleSkeleton";
 import { auth, firebase } from "@/firebase/firebase";
 import { DBProblem, Problem } from "@/utils/types/problem";
-import { arrayRemove, arrayUnion, doc, getDoc, runTransaction, updateDoc } from "firebase/firestore";
+import {
+  arrayRemove,
+  arrayUnion,
+  doc,
+  getDoc,
+  runTransaction,
+  updateDoc,
+} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import {
@@ -17,9 +24,13 @@ import { toast } from "react-toastify";
 
 type ProblemDescriptionProps = {
   problem: Problem;
+  _solved: boolean;
 };
 
-const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
+const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
+  problem,
+  _solved,
+}) => {
   const [user] = useAuthState(auth);
   const { currentProblem, loading, problemDifficultyClass, setCurrentProblem } =
     useGetCurrentProblem(problem.id);
@@ -37,7 +48,6 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
   const [updatingDislikes, setUpdatingDislikes] = useState<boolean>(false);
   const [updatingStarred, setUpdatingStarred] = useState<boolean>(false);
   const [updatingSolved, setUpdatingSolved] = useState<boolean>(false);
-
 
   const handleLike = async () => {
     if (!user) {
@@ -187,20 +197,19 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
     setUpdatingStarred(true);
     const userRef = doc(firebase, "users", user!.uid);
 
-    if(!starred){
+    if (!starred) {
       await updateDoc(userRef, {
-        starredProblems: arrayUnion(problem.id)
+        starredProblems: arrayUnion(problem.id),
       });
-      setUsersData((prev) => ({...prev, starred: true}))
-      
+      setUsersData((prev) => ({ ...prev, starred: true }));
     } else {
       await updateDoc(userRef, {
-        starredProblems: arrayRemove(problem.id)
+        starredProblems: arrayRemove(problem.id),
       });
-      setUsersData((prev) => ({...prev, starred: false}))
+      setUsersData((prev) => ({ ...prev, starred: false }));
     }
     setUpdatingStarred(false);
-  }
+  };
 
   return (
     <div className="bg-dark-layer-1 ">
@@ -225,15 +234,18 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
               </div>
             </div>
             {!loading && currentProblem && (
+              
               <div className="flex items-center mt-3">
                 <div
                   className={`${problemDifficultyClass} inline-block rounded-[21px] bg-opacity-[.15] px-2.5 py-1 text-xs font-medium capitalize `}
                 >
                   {currentProblem.difficulty}
                 </div>
-                <div className="rounded p-[3px] ml-4 text-lg transition-colors duration-200 text-green-s text-dark-green-s">
-                  <BsCheck2Circle />
-                </div>
+                {(solved || _solved) && (
+                  <div className="rounded p-[3px] ml-4 text-lg transition-colors duration-200 text-green-s text-dark-green-s">
+                    <BsCheck2Circle />
+                  </div>
+                )}
                 <div
                   className="flex items-center cursor-pointer hover:bg-dark-fill-3 space-x-1 rounded p-[3px]  ml-4 text-lg transition-colors duration-200 text-dark-gray-6"
                   onClick={handleLike}
@@ -260,12 +272,17 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
                   )}
                   <span className="text-xs">{currentProblem?.dislikes}</span>
                 </div>
-                <div className="cursor-pointer hover:bg-dark-fill-3  rounded p-[3px]  ml-4 text-xl transition-colors duration-200 text-green-s text-dark-gray-6 "
+                <div
+                  className="cursor-pointer hover:bg-dark-fill-3  rounded p-[3px]  ml-4 text-xl transition-colors duration-200 text-green-s text-dark-gray-6 "
                   onClick={handleStarred}
                 >
-                  {starred && !updatingStarred && <AiFillStar className='text-dark-yellow'/>}
+                  {starred && !updatingStarred && (
+                    <AiFillStar className="text-dark-yellow" />
+                  )}
                   {!starred && !updatingStarred && <AiFillStar />}
-                  {updatingStarred && <AiOutlineLoading3Quarters className="animate-spin" />}
+                  {updatingStarred && (
+                    <AiOutlineLoading3Quarters className="animate-spin" />
+                  )}
                 </div>
               </div>
             )}
