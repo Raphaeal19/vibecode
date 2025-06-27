@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       case 'POST':
         const { provider, apiKey, action } = req.body;
-        console.log("provider", provider)
+        // console.log("provider", provider)
         
         if (!provider || !['openai', 'anthropic', 'gemini'].includes(provider)) {
           return res.status(400).json({ error: 'Invalid provider' });

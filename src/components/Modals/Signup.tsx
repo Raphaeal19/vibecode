@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { auth, firebase } from "@/firebase/firebase";
 import { toast } from "react-toastify";
 import { doc, setDoc } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
 
 type SignupProps = {};
 
@@ -48,6 +49,11 @@ const Signup: React.FC<SignupProps> = () => {
       );
 
       if (!newUser) return;
+
+      // Set display name in Firebase Authentication profile
+      await updateProfile(newUser.user, {
+        displayName: inputs.displayName,
+      });
 
       const userData = {
         uid: newUser.user.uid,

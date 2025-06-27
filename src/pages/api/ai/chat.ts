@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { messages, provider, context, conversationId } = req.body;
 
-    console.log(messages, provider, context, conversationId)
+    // console.log(messages, provider, context, conversationId)
 
     if (!messages || !provider) {
       return res.status(400).json({ error: 'Prompt and provider are required' });

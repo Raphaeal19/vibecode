@@ -22,7 +22,7 @@ export class OpenAIProvider implements AIProvider {
   async chat(request: ChatRequest): Promise<ChatResponse> {
     const apiKey = await this.getApiKey();
 
-    console.log(apiKey)
+    // console.log(apiKey)
 
     const messages = request.messages.map((msg) => ({
       role: msg.role,
