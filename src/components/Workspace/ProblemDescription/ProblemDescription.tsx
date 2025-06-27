@@ -224,7 +224,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
         </div>
       </div>
 
-      <div className="flex px-0 py-4 h-[calc(100vh-94px)] overflow-y-auto">
+      <div className="flex px-5 py-4 h-[calc(100vh-94px)] overflow-y-auto custom-scrollbar">
         <div className="px-5">
           {/* Problem heading */}
           <div className="w-full ">

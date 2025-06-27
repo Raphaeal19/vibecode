@@ -8,6 +8,7 @@ import { authModalState } from "@/atoms/authModalAtom";
 import Image from "next/image";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { BsList } from "react-icons/bs";
+import { FiSettings } from "react-icons/fi";
 import Timer from "../Timer/Timer";
 import { useRouter } from "next/router";
 import { problems } from "@/utils/problems";
@@ -112,6 +113,10 @@ const Topbar: React.FC<TopbarProps> = ({ problemPage }) => {
               />
               <div className="absolute top-10 left-1/2 -translate-x-1/2 mx-auto bg-dark-layer-1 text-brand-orange p-2 rounded shadow-lg z-40 group-hover:scale-100 scale-0 transition-all duration-300 ease-in-out">
                 <p className="text-sm">{user.email}</p>
+                <Link href="/profile" className="flex items-center gap-2 mt-2 hover:text-white transition-colors">
+                  <FiSettings className="text-sm" />
+                  <span className="text-sm">Settings</span>
+                </Link>
               </div>
             </div>
           )}
