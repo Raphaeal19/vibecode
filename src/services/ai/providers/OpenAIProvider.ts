@@ -116,7 +116,7 @@ export class OpenAIProvider implements AIProvider {
 //     return prompt;
 //   }
 
-//   private generateConversationId(): string {
-//     return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-//   }
-// }
+  private generateConversationId(): string {
+    return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+}

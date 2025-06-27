@@ -125,3 +125,4 @@ export class GeminiProvider implements AIProvider {
     
   //   return prompt;
   // }
+};

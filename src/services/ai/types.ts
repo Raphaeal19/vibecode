@@ -38,6 +38,7 @@ export interface ChatResponse {
 export interface AIProvider {
   chat(request: ChatRequest): Promise<ChatResponse>;
   validateConnection(): Promise<boolean>;
+  
 }
 
 export interface AIUserSettings {
