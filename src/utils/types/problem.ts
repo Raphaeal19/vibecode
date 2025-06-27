@@ -24,6 +24,7 @@ export type Problem = {
   expectedOutputFiles?: ExpectedOutputFile[]; // For Documentation, API Creation
   evaluationCriteria?: string; // General criteria for AI-assisted tasks
   problemStatement? : string;
+  hints?: string[];
   // Handler function will be managed on the backend based on taskType
   // handlerFunction: ((fn: any) => boolean) | string; // Remove from frontend Problem type
 };
@@ -33,8 +34,7 @@ export interface DebuggingProblem extends Problem {
   taskType: 'debugging';
   bugDescription: string; // Detailed description of the bug scenario
   testCases: TestCase[]; // Tests that currently fail due to the bug
-  expectedFixDescription?: string; // High-level description of the intended fix
-  hints?: string[]; // Optional hints for the user
+  expectedFixDescription?: string; // High-level description of the intended fixs
 }
 
 export interface DocumentationProblem extends Problem {
@@ -43,7 +43,6 @@ export interface DocumentationProblem extends Problem {
   targetFormat: 'jsdoc' | 'markdown' | 'swagger'; // Expected output format
   initialCodeFiles: CodeFile[]; // Codebase to document (can be multiple files)
   expectedDocumentationCriteria: string; // Detailed rubric for good documentation
-  hints?: string[]; // Optional hints
 }
 
 // Helper types
