@@ -304,7 +304,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
             {/* Problem Statement(paragraphs) */}
             <div className="text-white text-sm">
               <div
-                dangerouslySetInnerHTML={{ __html: problem.problemStatement }}
+                dangerouslySetInnerHTML={{ __html: problem.taskDescription || "" }}
               />
             </div>
 
