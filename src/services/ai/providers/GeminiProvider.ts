@@ -113,4 +113,15 @@ export class GeminiProvider implements AIProvider {
   private generateConversationId(): string {
     return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-}
+
+  // private formatPrompt(request: ChatRequest): string {
+  //   let prompt = request.prompt;
+    
+  //   // This method might become less relevant if system prompts handle most context
+  //   // but keeping it for direct user prompts if needed.
+  //   if (request.context?.code && !request.context?.challengeType) { // Only append code if not already handled by challengeType in system prompt
+  //     prompt += `\n\nCode:\n```${request.context.language || 'javascript'}\n${request.context.code}\n````;
+  //   }
+    
+  //   return prompt;
+  // }

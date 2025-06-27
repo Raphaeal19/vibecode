@@ -7,12 +7,14 @@ import { useRecoilState } from 'recoil';
 import { chatState, ChatMessage } from '@/atoms/chatAtom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { DebuggingProblem, DocumentationProblem, Problem } from '@/utils/types/problem';
 
 interface AIChatPanelProps {
   problemId: string;
+  problem: Problem
 }
 
-const AIChatPanel: React.FC<AIChatPanelProps> = ({ problemId }) => {
+const AIChatPanel: React.FC<AIChatPanelProps> = ({ problemId, problem }) => {
   const [prompt, setPrompt] = useState('');
   const [chats, setChats] = useRecoilState(chatState);
   const messages = chats[problemId] || [];
@@ -34,6 +36,11 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ problemId }) => {
 
     if (!user) {
       toast.error('Please login to use AI assistant');
+      return;
+    }
+
+    if (!problem) {
+      toast.error('Problem data not available.');
       return;
     }
 
@@ -60,7 +67,13 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ problemId }) => {
         body: JSON.stringify({
           messages: updatedMessages.map(({ id, timestamp, ...rest }) => rest),
           provider: selectedProvider,
-          context: { problemId },
+          context: {
+            problemId,
+            challengeType: problem.taskType,
+            code: problem.starterCode,
+            ...(problem.taskType === 'debugging' && { bugDescription: (problem as DebuggingProblem).bugDescription, testCases: (problem as DebuggingProblem).testCases }),
+            ...(problem.taskType === 'documentation' && { initialCodeFiles: (problem as DocumentationProblem).initialCodeFiles, expectedDocumentationCriteria: (problem as DocumentationProblem).expectedDocumentationCriteria }),
+          },
         }),
       });
 

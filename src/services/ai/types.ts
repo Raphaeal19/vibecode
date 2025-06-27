@@ -12,6 +12,11 @@ export interface ChatRequest {
     problemId?: string;
     challengeType?: string;
     language?: string;
+    // New context fields for debugging and documentation problems
+    bugDescription?: string;
+    initialCodeFiles?: { filename: string; content: string; }[];
+    expectedDocumentationCriteria?: string;
+    testCases?: { id: number; input: any; expectedOutput: any; explanation?: string; }[];
   };
   model?: string
   conversationId?: string;

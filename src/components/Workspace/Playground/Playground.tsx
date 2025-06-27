@@ -54,48 +54,61 @@ const Playground: React.FC<PlaygroundProps> = ({
         theme: "dark",
         autoClose: 3000,
       });
+      return;
     }
 
     try {
-      userCode = userCode.slice(userCode.indexOf(problem.starterFunctionName));
-      // console.log(userCode)
-      const cb = new Function(`return ${userCode}`)();
-      const handler = problems[pid as string].handlerFunction;
-      if (typeof handler === "function") {
-        const success = handler(cb);
-        if (success) {
-          toast.success("Congrats! Your code has passed all test cases", {
-            position: "top-center",
-            theme: "dark",
-            autoClose: 3000,
-          });
-          setSuccess(true);
-          setTimeout(() => {
-            setSuccess(false);
-          }, 4000);
+      const token = await user.getIdToken();
+      let codeToEvaluate = userCode;
+      if (problem.taskType === 'dsa' && problem.starterFunctionName) {
+        codeToEvaluate = userCode.slice(userCode.indexOf(problem.starterFunctionName));
+      }
 
-          const userRef = doc(firebase, "users", user!.uid);
-          await updateDoc(userRef, {
-            solvedProblems: arrayUnion(pid),
-          });
-          setSolved(true);
-        }
+      const response = await fetch('/api/evaluate-solution', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          problemId: pid,
+          userCode: codeToEvaluate,
+          taskType: problem.taskType,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.passed) {
+        toast.success(data.feedback || "Congrats! Your code has passed all test cases", {
+          position: "top-center",
+          theme: "dark",
+          autoClose: 3000,
+        });
+        setSuccess(true);
+        setTimeout(() => {
+          setSuccess(false);
+        }, 4000);
+
+        const userRef = doc(firebase, "users", user!.uid);
+        await updateDoc(userRef, {
+          solvedProblems: arrayUnion(pid),
+        });
+        setSolved(true);
+      } else {
+        toast.error(data.feedback || "Something went wrong", {
+          position: "top-center",
+          theme: "dark",
+          autoClose: 3000,
+        });
       }
     } catch (error: any) {
-      // console.log(error);
-      if (error.message.startsWith("AssertionError [ERR_ASSERTION]")) {
-        toast.error("Your code has failed some test cases", {
-          position: "top-center",
-          theme: "dark",
-          autoClose: 3000,
-        });
-      } else {
-        toast.error("Something went wrong" + error.message, {
-          position: "top-center",
-          theme: "dark",
-          autoClose: 3000,
-        });
-      }
+      console.error('Evaluation error:', error);
+      toast.error(error.message || "An unexpected error occurred during evaluation.", {
+        position: "top-center",
+        theme: "dark",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -201,7 +214,7 @@ const Playground: React.FC<PlaygroundProps> = ({
 
             {activeTab === "ai" && (
               <div className="mt-4 h-full">
-                <AIChatPanel problemId={problem.id} />
+                <AIChatPanel problemId={problem.id} problem={problem} />
               </div>
             )}
           </div>

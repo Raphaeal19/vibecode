@@ -102,19 +102,21 @@ export class OpenAIProvider implements AIProvider {
     }
   }
 
-  private formatPrompt(request: ChatRequest): string {
-    let prompt = request.prompt;
+//   private formatPrompt(request: ChatRequest): string {
+//     let prompt = request.prompt;
 
-    if (request.context?.code) {
-      prompt += `\n\nCode:\n\`\`\`${
-        request.context.language || "javascript"
-      }\n${request.context.code}\n\`\`\``;
-    }
+//     // This method might become less relevant if system prompts handle most context
+//     // but keeping it for direct user prompts if needed.
+//     if (request.context?.code && !request.context?.challengeType) { // Only append code if not already handled by challengeType in system prompt
+//       prompt += `\n\nCode:\n\`\`\`${
+//         request.context.language || "javascript"
+//       }\n${request.context.code}\n\`\`\``;
+//     }
 
-    return prompt;
-  }
+//     return prompt;
+//   }
 
-  private generateConversationId(): string {
-    return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-}
+//   private generateConversationId(): string {
+//     return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+//   }
+// }

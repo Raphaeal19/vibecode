@@ -37,6 +37,10 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
   const { liked, disliked, starred, solved, setUsersData } =
     useGetUsersDataOnProblem(problem.id);
 
+  if (!problem) {
+    return <div>Loading problem details...</div>; // Or some other loading/error state
+  }
+
   const returnUserDataAndProblemData = async (transaction: any) => {
     const userRef = doc(firebase, "users", user!.uid);
     const problemRef = doc(firebase, "problems", problem.id);
@@ -341,6 +345,31 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
                 />
               </ul>
             </div>
+
+            {/* Evaluation Criteria */}
+            {problem.evaluationCriteria && (
+              <div className="my-8 pb-8">
+                <div className="text-white text-sm font-medium">Evaluation Criteria:</div>
+                <div
+                  className="text-white text-sm mt-2"
+                  dangerouslySetInnerHTML={{ __html: problem.evaluationCriteria }}
+                />
+              </div>
+            )}
+
+            {/* Hints */}
+            {problem.hints && problem.hints.length > 0 && (
+              <div className="my-8 pb-8">
+                <div className="text-white text-sm font-medium">Hints:</div>
+                <ul className="text-white ml-5 list-disc">
+                  {problem.hints.map((hint, index) => (
+                    <li key={index} className="mt-2">
+                      {hint}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
