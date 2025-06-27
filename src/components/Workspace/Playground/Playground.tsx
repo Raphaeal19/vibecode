@@ -58,49 +58,92 @@ const Playground: React.FC<PlaygroundProps> = ({
     }
 
     try {
-      const token = await user.getIdToken();
-      let codeToEvaluate = userCode;
-      if (problem.taskType === 'dsa' && problem.starterFunctionName) {
-        codeToEvaluate = userCode.slice(userCode.indexOf(problem.starterFunctionName));
-      }
+      if (problem.taskType === 'dsa') {
+        // Frontend evaluation for DSA problems
+        if (!problem.starterFunctionName) {
+          toast.error("DSA problem is missing starterFunctionName.");
+          return;
+        }
+        const cb = new Function(`return ${userCode.slice(userCode.indexOf(problem.starterFunctionName))}`)();
+        const handler = problems[pid as string].handlerFunction;
 
-      const response = await fetch('/api/evaluate-solution', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          problemId: pid,
-          userCode: codeToEvaluate,
-          taskType: problem.taskType,
-        }),
-      });
+        if (typeof handler === "function") {
+          try {
+            const success = handler(cb);
+            if (success) {
+              toast.success("Congrats! Your code has passed all test cases", {
+                position: "top-center",
+                theme: "dark",
+                autoClose: 3000,
+              });
+              setSuccess(true);
+              setTimeout(() => {
+                setSuccess(false);
+              }, 4000);
 
-      const data = await response.json();
-
-      if (response.ok && data.passed) {
-        toast.success(data.feedback || "Congrats! Your code has passed all test cases", {
-          position: "top-center",
-          theme: "dark",
-          autoClose: 3000,
-        });
-        setSuccess(true);
-        setTimeout(() => {
-          setSuccess(false);
-        }, 4000);
-
-        const userRef = doc(firebase, "users", user!.uid);
-        await updateDoc(userRef, {
-          solvedProblems: arrayUnion(pid),
-        });
-        setSolved(true);
+              const userRef = doc(firebase, "users", user!.uid);
+              await updateDoc(userRef, {
+                solvedProblems: arrayUnion(pid),
+              });
+              setSolved(true);
+            }
+          } catch (error: any) {
+            if (error.message.startsWith("AssertionError [ERR_ASSERTION]")) {
+              toast.error("Your code has failed some test cases", {
+                position: "top-center",
+                theme: "dark",
+                autoClose: 3000,
+              });
+            } else {
+              toast.error("Something went wrong: " + error.message, {
+                position: "top-center",
+                theme: "dark",
+                autoClose: 3000,
+              });
+            }
+          }
+        }
       } else {
-        toast.error(data.feedback || "Something went wrong", {
-          position: "top-center",
-          theme: "dark",
-          autoClose: 3000,
+        // Backend evaluation for other problem types
+        const token = await user.getIdToken();
+        const response = await fetch('/api/evaluate-solution', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            problemId: pid,
+            userCode: userCode,
+            taskType: problem.taskType,
+          }),
         });
+
+        const data = await response.json();
+
+        if (response.ok && data.passed) {
+          toast.success(data.feedback || "Congrats! Your code has passed all test cases", {
+            position: "top-center",
+            theme: "dark",
+            autoClose: 3000,
+          });
+          setSuccess(true);
+          setTimeout(() => {
+            setSuccess(false);
+          }, 4000);
+
+          const userRef = doc(firebase, "users", user!.uid);
+          await updateDoc(userRef, {
+            solvedProblems: arrayUnion(pid),
+          });
+          setSolved(true);
+        } else {
+          toast.error(data.feedback || "Something went wrong", {
+            position: "top-center",
+            theme: "dark",
+            autoClose: 3000,
+          });
+        }
       }
     } catch (error: any) {
       console.error('Evaluation error:', error);
