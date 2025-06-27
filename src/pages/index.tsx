@@ -4,7 +4,6 @@ import useHasMounted from "@/hooks/useHasMounted";
 import { useState } from "react";
 // import { doc, setDoc } from "firebase/firestore";
 // import { firebase } from "@/firebase/firebase";
-// import { useState } from "react";
 // import { problems } from "@/mockProblems/problems";
 
 export default function Home() {
@@ -25,11 +24,11 @@ export default function Home() {
   //   try {
   //     const promises = problems.map((problem) => {
   //       const probRef = doc(firebase, "problems", problem.id);
-  //       const order = parseInt(problem.order);
+  //       // const order = parseInt(problem.order);
   //       const newProblem = {
   //         ...inputs,
   //         ...problem,
-  //         order: order,
+  //         order: problem.order,
   //       };
   //       return setDoc(probRef, newProblem);
   //     });

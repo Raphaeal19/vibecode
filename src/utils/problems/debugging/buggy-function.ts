@@ -71,7 +71,7 @@ export const debuggingHandler = (userCode: string, testCases: TestCase[]): { pas
 
 export const buggyFunctionProblem: DebuggingProblem = {
   id: "buggy-function",
-  title: "1. Debugging: Price Calculation Errors",
+  title: "7. Debugging: Price Calculation Errors",
   taskType: "debugging",
   bugDescription: `
     <p class='mt-3'>You are given a JavaScript module responsible for calculating the final price of an item, including discounts and taxes. Users are reporting incorrect final prices for certain scenarios.</p>

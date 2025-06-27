@@ -238,7 +238,6 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
               </div>
             </div>
             {!loading && currentProblem && (
-              
               <div className="flex items-center mt-3">
                 <div
                   className={`${problemDifficultyClass} inline-block rounded-[21px] bg-opacity-[.15] px-2.5 py-1 text-xs font-medium capitalize `}
@@ -304,7 +303,9 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
             {/* Problem Statement(paragraphs) */}
             <div className="text-white text-sm">
               <div
-                dangerouslySetInnerHTML={{ __html: problem.taskDescription || "" }}
+                dangerouslySetInnerHTML={{
+                  __html: problem.taskDescription || "",
+                }}
               />
             </div>
 
@@ -349,11 +350,18 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
             {/* Evaluation Criteria */}
             {problem.evaluationCriteria && (
               <div className="my-8 pb-8">
-                <div className="text-white text-sm font-medium">Evaluation Criteria:</div>
-                <div
-                  className="text-white text-sm mt-2"
-                  dangerouslySetInnerHTML={{ __html: problem.evaluationCriteria }}
-                />
+                <div className="text-white text-sm font-medium">
+                  Evaluation Criteria:
+                </div>
+                <p className="text-white text-sm">Your solution will be evaluated based on the following:</p>
+                <ul className="text-white text-sm ml-5 list-disc">
+                  <div
+                    className="text-white text-sm mt-2"
+                    dangerouslySetInnerHTML={{
+                      __html: problem.evaluationCriteria,
+                    }}
+                  />
+                </ul>
               </div>
             )}
 
@@ -363,9 +371,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
                 <div className="text-white text-sm font-medium">Hints:</div>
                 <ul className="text-white ml-5 list-disc">
                   {problem.hints.map((hint, index) => (
-                    <li key={index} className="mt-2">
-                      {hint}
-                    </li>
+                    <div className="text-white text-sm" dangerouslySetInnerHTML={{ __html: hint }} key={index}></div>
                   ))}
                 </ul>
               </div>
