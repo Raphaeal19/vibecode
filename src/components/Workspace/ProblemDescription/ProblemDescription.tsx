@@ -21,6 +21,7 @@ import {
 import { BsCheck2Circle } from "react-icons/bs";
 import { TiStarOutline } from "react-icons/ti";
 import { toast } from "react-toastify";
+import AIChatPanel from "../AIChatPanel";
 
 type ProblemDescriptionProps = {
   problem: Problem;
@@ -36,6 +37,9 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
     useGetCurrentProblem(problem.id);
   const { liked, disliked, starred, solved, setUsersData } =
     useGetUsersDataOnProblem(problem.id);
+  const [activeTab, setActiveTab] = useState<"description" | "ai">(
+    "description"
+  );
 
   if (!problem) {
     return <div>Loading problem details...</div>; // Or some other loading/error state
@@ -216,168 +220,184 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({
   };
 
   return (
-    <div className="bg-dark-layer-1 ">
+    <div className="bg-dark-layer-1">
       {/* TAB */}
-      <div className="flex h-11 w-full items-center pt-2 bg-dark-layer-2 text-white overflow-x-hidden">
+      <div className="flex h-11 w-full items-center pt-2 px-1 bg-dark-layer-2 text-white overflow-x-hidden">
         <div
-          className={
-            "bg-dark-layer-1 rounded-t-[5px] px-5 py-[10px] text-xs cursor-pointer"
-          }
+          className={`bg-dark-layer-1 rounded-t-[5px] px-5 py-[10px] text-xs cursor-pointer ${
+            activeTab === "description" ? "text-white" : "text-gray-500"
+          }`}
+          onClick={() => setActiveTab("description")}
         >
           Description
         </div>
+        <div
+          className={`bg-dark-layer-1 rounded-t-[5px] px-5 py-[10px] ml-0.5 text-xs cursor-pointer ${
+            activeTab === "ai" ? "text-white" : "text-gray-500"
+          }`}
+          onClick={() => setActiveTab("ai")}
+        >
+          AI Assistant
+        </div>
       </div>
 
-      <div className="flex px-5 py-4 h-[calc(100vh-94px)] overflow-y-auto custom-scrollbar">
-        <div className="px-5">
-          {/* Problem heading */}
-          <div className="w-full ">
-            <div className="flex space-x-4">
-              <div className="flex-1 mr-2 text-lg text-white font-medium">
-                {problem.title}
-              </div>
-            </div>
-            {!loading && currentProblem && (
-              <div className="flex items-center mt-3">
-                <div
-                  className={`${problemDifficultyClass} inline-block rounded-[21px] bg-opacity-[.15] px-2.5 py-1 text-xs font-medium capitalize `}
-                >
-                  {currentProblem.difficulty}
-                </div>
-                {(solved || _solved) && (
-                  <div className="rounded p-[3px] ml-4 text-lg transition-colors duration-200 text-green-s text-dark-green-s">
-                    <BsCheck2Circle />
-                  </div>
-                )}
-                <div
-                  className="flex items-center cursor-pointer hover:bg-dark-fill-3 space-x-1 rounded p-[3px]  ml-4 text-lg transition-colors duration-200 text-dark-gray-6"
-                  onClick={handleLike}
-                >
-                  {!updatingLikes && liked && (
-                    <AiFillLike className="text-dark-blue-s" />
-                  )}
-                  {!liked && !updatingLikes && <AiFillLike />}
-                  {updatingLikes && (
-                    <AiOutlineLoading3Quarters className="animate-spin" />
-                  )}
-                  <span className="text-xs">{currentProblem?.likes}</span>
-                </div>
-                <div
-                  className="flex items-center cursor-pointer hover:bg-dark-fill-3 space-x-1 rounded p-[3px]  ml-4 text-lg transition-colors duration-200 text-green-s text-dark-gray-6"
-                  onClick={handleDislike}
-                >
-                  {!updatingDislikes && disliked && (
-                    <AiFillDislike className="text-dark-blue-s" />
-                  )}
-                  {!disliked && !updatingDislikes && <AiFillDislike />}
-                  {updatingDislikes && (
-                    <AiOutlineLoading3Quarters className="animate-spin" />
-                  )}
-                  <span className="text-xs">{currentProblem?.dislikes}</span>
-                </div>
-                <div
-                  className="cursor-pointer hover:bg-dark-fill-3  rounded p-[3px]  ml-4 text-xl transition-colors duration-200 text-green-s text-dark-gray-6 "
-                  onClick={handleStarred}
-                >
-                  {starred && !updatingStarred && (
-                    <AiFillStar className="text-dark-yellow" />
-                  )}
-                  {!starred && !updatingStarred && <AiFillStar />}
-                  {updatingStarred && (
-                    <AiOutlineLoading3Quarters className="animate-spin" />
-                  )}
+      <div className="flex flex-col px-5 py-4 h-[calc(100vh-94px)] overflow-y-auto custom-scrollbar">
+        {activeTab === "description" && (
+          <div className="px-5">
+            {/* Problem heading */}
+            <div className="w-full ">
+              <div className="flex space-x-4">
+                <div className="flex-1 mr-2 text-lg text-white font-medium">
+                  {problem.title}
                 </div>
               </div>
-            )}
-
-            {loading && (
-              <div className="mt-3 flex space-x-2">
-                <RectangleSkeleton />
-                <CircleSkeleton />
-                <RectangleSkeleton />
-                <RectangleSkeleton />
-                <CircleSkeleton />
-              </div>
-            )}
-
-            {/* Problem Statement(paragraphs) */}
-            <div className="text-white text-sm">
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: problem.taskDescription || "",
-                }}
-              />
-            </div>
-
-            {/* Examples */}
-            <div className="mt-4">
-              {problem.examples.map((example, index) => (
-                <div key={example.id}>
-                  <p className="font-medium text-white">Example {index + 1}</p>
-                  {example.img && (
-                    <img src={example.img} alt="" className="mt-3" />
-                  )}
-                  <div className="example-card">
-                    <pre>
-                      <strong className="text-white">Input: </strong>{" "}
-                      {example.inputText}
-                      <br />
-                      <strong className="text-white">Output: </strong>{" "}
-                      {example.outputText}
-                      <br />
-                      {example.explanation && (
-                        <>
-                          <strong className="text-white">Explanation: </strong>{" "}
-                          {example.explanation}
-                        </>
-                      )}
-                    </pre>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Constraints */}
-            <div className="my-8 pb-8">
-              <div className="text-white text-sm font-medium">Constraints:</div>
-              <ul className="text-white ml-5 list-disc">
-                <div
-                  dangerouslySetInnerHTML={{ __html: problem.constraints }}
-                />
-              </ul>
-            </div>
-
-            {/* Evaluation Criteria */}
-            {problem.evaluationCriteria && (
-              <div className="my-8 pb-8">
-                <div className="text-white text-sm font-medium">
-                  Evaluation Criteria:
-                </div>
-                <p className="text-white text-sm">Your solution will be evaluated based on the following:</p>
-                <ul className="text-white text-sm ml-5 list-disc">
+              {!loading && currentProblem && (
+                <div className="flex items-center mt-3">
                   <div
-                    className="text-white text-sm mt-2"
-                    dangerouslySetInnerHTML={{
-                      __html: problem.evaluationCriteria,
-                    }}
+                    className={`${problemDifficultyClass} inline-block rounded-[21px] bg-opacity-[.15] px-2.5 py-1 text-xs font-medium capitalize `}
+                  >
+                    {currentProblem.difficulty}
+                  </div>
+                  {(solved || _solved) && (
+                    <div className="rounded p-[3px] ml-4 text-lg transition-colors duration-200 text-green-s text-dark-green-s">
+                      <BsCheck2Circle />
+                    </div>
+                  )}
+                  <div
+                    className="flex items-center cursor-pointer hover:bg-dark-fill-3 space-x-1 rounded p-[3px]  ml-4 text-lg transition-colors duration-200 text-dark-gray-6"
+                    onClick={handleLike}
+                  >
+                    {!updatingLikes && liked && (
+                      <AiFillLike className="text-dark-blue-s" />
+                    )}
+                    {!liked && !updatingLikes && <AiFillLike />}
+                    {updatingLikes && (
+                      <AiOutlineLoading3Quarters className="animate-spin" />
+                    )}
+                    <span className="text-xs">{currentProblem?.likes}</span>
+                  </div>
+                  <div
+                    className="flex items-center cursor-pointer hover:bg-dark-fill-3 space-x-1 rounded p-[3px]  ml-4 text-lg transition-colors duration-200 text-green-s text-dark-gray-6"
+                    onClick={handleDislike}
+                  >
+                    {!updatingDislikes && disliked && (
+                      <AiFillDislike className="text-dark-blue-s" />
+                    )}
+                    {!disliked && !updatingDislikes && <AiFillDislike />}
+                    {updatingDislikes && (
+                      <AiOutlineLoading3Quarters className="animate-spin" />
+                    )}
+                    <span className="text-xs">{currentProblem?.dislikes}</span>
+                  </div>
+                  <div
+                    className="cursor-pointer hover:bg-dark-fill-3  rounded p-[3px]  ml-4 text-xl transition-colors duration-200 text-green-s text-dark-gray-6 "
+                    onClick={handleStarred}
+                  >
+                    {starred && !updatingStarred && (
+                      <AiFillStar className="text-dark-yellow" />
+                    )}
+                    {!starred && !updatingStarred && <AiFillStar />}
+                    {updatingStarred && (
+                      <AiOutlineLoading3Quarters className="animate-spin" />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {loading && (
+                <div className="mt-3 flex space-x-2">
+                  <RectangleSkeleton />
+                  <CircleSkeleton />
+                  <RectangleSkeleton />
+                  <RectangleSkeleton />
+                  <CircleSkeleton />
+                </div>
+              )}
+
+              {/* Problem Statement(paragraphs) */}
+              <div className="text-white text-sm">
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: problem.taskDescription || "",
+                  }}
+                />
+              </div>
+
+              {/* Examples */}
+              <div className="mt-4">
+                {problem.examples.map((example, index) => (
+                  <div key={example.id}>
+                    <p className="font-medium text-white">Example {index + 1}</p>
+                    {example.img && (
+                      <img src={example.img} alt="" className="mt-3" />
+                    )}
+                    <div className="example-card">
+                      <pre>
+                        <strong className="text-white">Input: </strong>{" "}
+                        {example.inputText}
+                        <br />
+                        <strong className="text-white">Output: </strong>{" "}
+                        {example.outputText}
+                        <br />
+                        {example.explanation && (
+                          <>
+                            <strong className="text-white">Explanation: </strong>{" "}
+                            {example.explanation}
+                          </>
+                        )}
+                      </pre>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Constraints */}
+              <div className="my-8 pb-8">
+                <div className="text-white text-sm font-medium">Constraints:</div>
+                <ul className="text-white ml-5 list-disc">
+                  <div
+                    dangerouslySetInnerHTML={{ __html: problem.constraints }}
                   />
                 </ul>
               </div>
-            )}
 
-            {/* Hints */}
-            {problem.hints && problem.hints.length > 0 && (
-              <div className="my-8 pb-8">
-                <div className="text-white text-sm font-medium">Hints:</div>
-                <ul className="text-white ml-5 list-disc">
-                  {problem.hints.map((hint, index) => (
-                    <div className="text-white text-sm" dangerouslySetInnerHTML={{ __html: hint }} key={index}></div>
-                  ))}
-                </ul>
-              </div>
-            )}
+              {/* Evaluation Criteria */}
+              {problem.evaluationCriteria && (
+                <div className="my-8 pb-8">
+                  <div className="text-white text-sm font-medium">
+                    Evaluation Criteria:
+                  </div>
+                  <p className="text-white text-sm">Your solution will be evaluated based on the following:</p>
+                  <ul className="text-white text-sm ml-5 list-disc">
+                    <div
+                      className="text-white text-sm mt-2"
+                      dangerouslySetInnerHTML={{
+                        __html: problem.evaluationCriteria,
+                      }}
+                    />
+                  </ul>
+                </div>
+              )}
+
+              {/* Hints */}
+              {problem.hints && problem.hints.length > 0 && (
+                <div className="my-8 pb-8">
+                  <div className="text-white text-sm font-medium">Hints:</div>
+                  <ul className="text-white ml-5 list-disc">
+                    {problem.hints.map((hint, index) => (
+                      <div className="text-white text-sm" dangerouslySetInnerHTML={{ __html: hint }} key={index}></div>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
+        {activeTab === "ai" && (
+          <div className="h-full w-full">
+            <AIChatPanel problemId={problem.id} problem={problem} />
+          </div>
+        )}
       </div>
     </div>
   );

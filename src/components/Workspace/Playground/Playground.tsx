@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PreferenceNav from "./PreferenceNav/PreferenceNav";
 import Split from "react-split";
-import CodeMirror from "@uiw/react-codemirror";
-import { vscodeDark } from "@uiw/codemirror-theme-vscode";
-import { javascript } from "@codemirror/lang-javascript";
+import Editor from "@monaco-editor/react";
 import EditorFooter from "./EditorFooter";
 import { Problem } from "@/utils/types/problem";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -12,9 +10,7 @@ import { toast } from "react-toastify";
 import { problems } from "@/utils/problems";
 import { useRouter } from "next/router";
 import { arrayUnion, doc, updateDoc } from "firebase/firestore";
-import { python } from "@codemirror/lang-python";
 import useLocalStorage from "@/hooks/useLocalStorage";
-import AIChatPanel from "../AIChatPanel";
 
 type PlaygroundProps = {
   problem: Problem;
@@ -34,8 +30,8 @@ const Playground: React.FC<PlaygroundProps> = ({
   setSolved,
 }) => {
   const [activeTestCaseId, setActiveTestCaseId] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<"testcases" | "ai">("testcases");
-  let [userCode, setUserCode] = useState<string>(problem.starterCode);
+  const [activeFile, setActiveFile] = useState(problem.files[0].name);
+  const [userCode, setUserCode] = useState(problem.files[0].code);
   const [fontSize, setFontSize] = useLocalStorage("vc-font-size", "16px");
   const [user] = useAuthState(auth);
   const router = useRouter();
@@ -57,116 +53,30 @@ const Playground: React.FC<PlaygroundProps> = ({
       return;
     }
 
-    try {
-      if (problem.taskType === 'dsa') {
-        // Frontend evaluation for DSA problems
-        if (!problem.starterFunctionName) {
-          toast.error("DSA problem is missing starterFunctionName.");
-          return;
-        }
-        const cb = new Function(`return ${userCode.slice(userCode.indexOf(problem.starterFunctionName))}`)();
-        const handler = problems[pid as string].handlerFunction;
-
-        if (typeof handler === "function") {
-          try {
-            const success = handler(cb);
-            if (success) {
-              toast.success("Congrats! Your code has passed all test cases", {
-                position: "top-center",
-                theme: "dark",
-                autoClose: 3000,
-              });
-              setSuccess(true);
-              setTimeout(() => {
-                setSuccess(false);
-              }, 4000);
-
-              const userRef = doc(firebase, "users", user!.uid);
-              await updateDoc(userRef, {
-                solvedProblems: arrayUnion(pid),
-              });
-              setSolved(true);
-            }
-          } catch (error: any) {
-            if (error.message.startsWith("AssertionError [ERR_ASSERTION]")) {
-              toast.error("Your code has failed some test cases", {
-                position: "top-center",
-                theme: "dark",
-                autoClose: 3000,
-              });
-            } else {
-              toast.error("Something went wrong: " + error.message, {
-                position: "top-center",
-                theme: "dark",
-                autoClose: 3000,
-              });
-            }
-          }
-        }
-      } else {
-        // Backend evaluation for other problem types
-        const token = await user.getIdToken();
-        const response = await fetch('/api/evaluate-solution', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            problemId: pid,
-            userCode: userCode,
-            taskType: problem.taskType,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.passed) {
-          toast.success(data.feedback || "Congrats! Your code has passed all test cases", {
-            position: "top-center",
-            theme: "dark",
-            autoClose: 3000,
-          });
-          setSuccess(true);
-          setTimeout(() => {
-            setSuccess(false);
-          }, 4000);
-
-          const userRef = doc(firebase, "users", user!.uid);
-          await updateDoc(userRef, {
-            solvedProblems: arrayUnion(pid),
-          });
-          setSolved(true);
-        } else {
-          toast.error(data.feedback || "Something went wrong", {
-            position: "top-center",
-            theme: "dark",
-            autoClose: 3000,
-          });
-        }
-      }
-    } catch (error: any) {
-      console.error('Evaluation error:', error);
-      toast.error(error.message || "An unexpected error occurred during evaluation.", {
-        position: "top-center",
-        theme: "dark",
-        autoClose: 3000,
-      });
-    }
+    // For now, we'll just leave the endpoint open
+    console.log("Submitting code:", userCode);
   };
 
   useEffect(() => {
-    const storedCode = localStorage.getItem(`code-${pid}`);
-    if (user) {
-      setUserCode(storedCode ? JSON.parse(storedCode) : problem.starterCode);
-    } else {
-      setUserCode(problem.starterCode);
+    const file = problem.files.find((file) => file.name === activeFile);
+    if (file) {
+      setUserCode(file.code);
     }
-  }, [pid, user, problem.starterCode]);
+  }, [activeFile, problem.files]);
 
-  const onChange = (value: string) => {
-    setUserCode(value);
-    localStorage.setItem(`code-${pid}`, JSON.stringify(value));
+  const handleEditorChange = (value: string | undefined) => {
+    if (value) {
+      setUserCode(value);
+      const newFiles = problem.files.map((file) => {
+        if (file.name === activeFile) {
+          return { ...file, code: value };
+        }
+        return file;
+      });
+      // This is a temporary solution to update the problem state.
+      // A more robust solution would involve a state management library.
+      (problem as any).files = newFiles;
+    }
   };
 
   return (
@@ -179,87 +89,76 @@ const Playground: React.FC<PlaygroundProps> = ({
         minSize={60}
       >
         <div className="w-full overflow-auto">
-          <CodeMirror
+          <div className="flex bg-dark-layer-2">
+            {problem.files.map((file) => (
+              <button
+                key={file.name}
+                className={`px-4 py-2 text-sm font-medium ${
+                  activeFile === file.name
+                    ? "bg-dark-layer-1 text-white"
+                    : "bg-dark-layer-2 text-gray-400"
+                }`}
+                onClick={() => setActiveFile(file.name)}
+              >
+                {file.name}
+              </button>
+            ))}
+          </div>
+          <Editor
+            height="100%"
+            language="typescript"
+            theme="vs-dark"
             value={userCode}
-            theme={vscodeDark}
-            onChange={onChange}
-            extensions={[javascript(), python()]}
-            style={{ fontSize: settings.fontSize }}
+            onChange={handleEditorChange}
+            options={{ fontSize: parseInt(settings.fontSize) }}
           />
         </div>
-        <div className="w-full flex flex-col relative h-full">
-          {/* tab navigation */}
-          <div className="flex h-10 items-center space-x-6 px-5">
-            <div
-              className={`relative flex h-full flex-col justify-center cursor-pointer ${
-                activeTab === "testcases" ? "text-white" : "text-gray-500"
-              }`}
-              onClick={() => setActiveTab("testcases")}
-            >
-              <div className="text-sm font-medium leading-5">Test cases</div>
-              {activeTab === "testcases" && (
+        <div className="w-full overflow-auto relative flex flex-col h-full ">
+          <div className="flex-1 overflow-y-auto ml-5 my-2">
+            {/* testcases */}
+            <div className="flex h-10 items-center space-x-6">
+              <div className="relative flex h-full flex-col justify-center cursor-pointer">
+                <div className="text-sm font-medium leading-5 text-white">
+                  Testcases
+                </div>
                 <hr className="absolute bottom-0 h-0.5 w-full rounded-full border-none bg-white" />
-              )}
+              </div>
             </div>
-            <div
-              className={`relative flex h-full flex-col justify-center cursor-pointer ${
-                activeTab === "ai" ? "text-white" : "text-gray-500"
-              }`}
-              onClick={() => setActiveTab("ai")}
-            >
-              <div className="text-sm font-medium leading-5">AI Assistant</div>
-              {activeTab === "ai" && (
-                <hr className="absolute bottom-0 h-0.5 w-full rounded-full border-none bg-white" />
-              )}
-            </div>
-          </div>
 
-          {/* tab content */}
-          <div className="overflow-y-auto flex-1 p-5 pb-14">
-            {activeTab === "testcases" && (
-              <>
-                <div className="flex">
-                  {problem.examples.map((example, index) => (
+            <div className="flex">
+              {problem.examples.map((example, index) => (
+                <div
+                  className="mr-2 items-start mt-2 text-white"
+                  key={example.id}
+                  onClick={() => setActiveTestCaseId(index)}
+                >
+                  <div className="flex flex-wrap items-center gap-y-4">
                     <div
-                      className="mr-2 items-start mt-2 text-white"
-                      key={example.id}
-                      onClick={() => setActiveTestCaseId(index)}
-                    >
-                      <div className="flex flex-wrap items-center gap-y-4">
-                        <div
-                          className={`font-medium items-center transition-all focus:outline-none inline-flex bg-dark-fill-3 hover:bg-dark-fill-2 relative rounded-lg px-4 py-1 cursor-pointer whitespace-nowrap
+                      className={`font-medium items-center transition-all focus:outline-none inline-flex bg-dark-fill-3 hover:bg-dark-fill-2 relative rounded-lg px-4 py-1 cursor-pointer whitespace-nowrap
                         ${
                           activeTestCaseId === index
                             ? "text-white"
                             : "text-gray-500"
                         }
                       `}
-                        >
-                          Case {index + 1}
-                        </div>
-                      </div>
+                    >
+                      Case {index + 1}
                     </div>
-                  ))}
-                </div>
-
-                <div className="font-semibold my-4">
-                  <p className="text-sm font-medium mt-4 text-white">Input: </p>
-                  <div className="w-full cursor-text rounded-lg border px-3 py-[10px] bg-dark-fill-3 border-transparent text-white mt-2">
-                    {problem.examples[activeTestCaseId].inputText}
-                  </div>
-                  <p className="text-sm font-medium mt-4 text-white">Output: </p>
-                  <div className="w-full cursor-text rounded-lg border px-3 py-[10px] bg-dark-fill-3 border-transparent text-white mt-2">
-                    {problem.examples[activeTestCaseId].outputText}
                   </div>
                 </div>
-              </>
-            )}
+              ))}
+            </div>
 
-            {activeTab === "ai" && (
-              <div className="mt-4 h-full">
-                <AIChatPanel problemId={problem.id} problem={problem} />
+            <div className="font-semibold mr-5 my-4">
+              <p className="text-sm font-medium mt-4 text-white">Input: </p>
+              <div className="w-full cursor-text rounded-lg border px-3 py-[10px] bg-dark-fill-3 border-transparent text-white mt-2">
+                {problem.examples[activeTestCaseId].inputText}
               </div>
-            )}
+              <p className="text-sm font-medium mt-4 text-white">Output: </p>
+              <div className="w-full cursor-text rounded-lg border px-3 py-[10px] bg-dark-fill-3 border-transparent text-white mt-2">
+                {problem.examples[activeTestCaseId].outputText}
+              </div>
+            </div>
           </div>
           <EditorFooter handleSubmit={handleSubmit} />
         </div>

@@ -15,7 +15,7 @@ export type Problem = {
   examples: Example[]; // Still useful for illustrating concepts or expected outputs
   constraints: string;
   order: number;
-  starterCode: string; // Initial code provided to the user
+  files: CodeFile[]; // Initial code provided to the user
   starterFunctionName?: string; // Optional, for DSA problems
   handlerFunction?: string | ((fn: any) => boolean); // for DSA, old question structure
   
@@ -41,7 +41,6 @@ export interface DocumentationProblem extends Problem {
   taskType: 'documentation';
   documentationTarget: 'code' | 'api' | 'project'; // What needs documenting
   targetFormat: 'jsdoc' | 'markdown' | 'swagger'; // Expected output format
-  initialCodeFiles: CodeFile[]; // Codebase to document (can be multiple files)
   expectedDocumentationCriteria: string; // Detailed rubric for good documentation
 }
 
@@ -54,8 +53,9 @@ export type TestCase = {
 };
 
 export type CodeFile = {
-  filename: string;
-  content: string;
+  name: string;
+  code: string;
+  language: string;
   readOnly?: boolean; // If some files should not be edited
 };
 

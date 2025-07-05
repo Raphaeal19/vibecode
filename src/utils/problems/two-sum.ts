@@ -78,7 +78,13 @@ export const twoSum: Problem = {
 <strong>Only one valid answer exists.</strong>
 </li>`,
   handlerFunction: handlerTwoSum,
-  starterCode: starterCodeTwoSum,
+  files: [
+    {
+      name: "index.js",
+      language: "javascript",
+      code: starterCodeTwoSum,
+    },
+  ],
   order: 1,
   starterFunctionName: "function twoSum(",
 };
